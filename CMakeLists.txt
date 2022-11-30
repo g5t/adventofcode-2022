@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.22.0)
 project(advent-of-code-2022)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fanalyzer)
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
