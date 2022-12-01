@@ -15,11 +15,16 @@ set(AOC22_CXX_FLAGS
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
+set(AOC22_LIBRARY "aoc")
+
 set(AOC22_INSTALL_INCLUDE ${PROJECT_SOURCE_DIR}/include)
 set(AOC22_INSTALL_BIN ${PROJECT_SOURCE_DIR}/bin)
 set(AOC22_INSTALL_LIB ${PROJECT_SOURCE_DIR}/lib)
 
 include_directories(${AOC_INSTALL_INCLUDE})
+include_directories(${AOC_INSTALL_LIB})
+include_directories(lib)
 
+add_subdirectory(lib)
 add_subdirectory(src)
 
