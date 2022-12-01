@@ -4,10 +4,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 namespace aoc {
 std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string & filename);
 }
+
 
 
 #endif

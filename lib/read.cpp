@@ -1,8 +1,8 @@
 #include "read.h"
 
-using namespace aoc;
+//using namespace aoc;
 
-std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string& filename) {
+std::vector<std::vector<int>> aoc::read_vector_of_vector_of_ints(const std::string & filename) {
 
 std::fstream fs;
 fs.open(filename, std::ios::in);

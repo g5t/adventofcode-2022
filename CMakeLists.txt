@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22.0)
 
 project(advent-of-code-2022)
 
+set(CMAKE_C_STANDARD 20)
 set(CMAKE_CXX_STANDARD 20)
 
 set(AOC22_CLANG_FLAGS -Werror -pedantic-errors -Wall -Wextra -Wconversion -Wsign-conversion)
@@ -15,16 +16,23 @@ set(AOC22_CXX_FLAGS
 
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 
+set(AOC22_LIBRARY_NAME "aoc")
 set(AOC22_LIBRARY "aoc")
 
-set(AOC22_INSTALL_INCLUDE ${PROJECT_SOURCE_DIR}/include)
-set(AOC22_INSTALL_BIN ${PROJECT_SOURCE_DIR}/bin)
-set(AOC22_INSTALL_LIB ${PROJECT_SOURCE_DIR}/lib)
+set(AOC22_INSTALL_INCLUDE ${PROJECT_SOURCE_DIR}/install/include)
+set(AOC22_INSTALL_BIN ${PROJECT_SOURCE_DIR}/install/bin)
+set(AOC22_INSTALL_LIB ${PROJECT_SOURCE_DIR}/install/lib)
 
-include_directories(${AOC_INSTALL_INCLUDE})
-include_directories(${AOC_INSTALL_LIB})
-include_directories(lib)
+set(AOC22_INPUT_DIR ${PROJECT_SOURCE_DIR}/input)
+
+include_directories(${AOC22_INSTALL_INCLUDE})
+include_directories(${AOC22_INSTALL_LIB})
 
 add_subdirectory(lib)
+
+include_directories(lib)
+
+enable_testing()
+
 add_subdirectory(src)
 
