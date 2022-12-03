@@ -25,10 +25,14 @@ result str2score(std::string && str) {
 }
 
 int main(int argc, const char *argv[]){
-  if (argc != 3) { std::cout << "usage: " << argv[0] << " [filename] [part]" << std::endl; return 1; }
+  if (argc > 4 || argc < 3) {
+    std::cout << "usage: " << argv[0] << " [filename] [part] {[expected result]}" << std::endl;
+    return 1;
+	}
 
   std::string filename = argv[1];
-	int part = std::stoi(argv[2]);
+  int part = std::stoi(argv[2]);
+  int test_value = (argc > 3) ? std::stoi(argv[3]) : -1;
 
   std::map<std::pair<choice, choice>, result> decoder {
   	{{r,r},d}, {{r,p},l}, {{r,s},w},
@@ -72,6 +76,6 @@ int main(int argc, const char *argv[]){
 
   std::cout << "Part " << part << " score is " << total << "\n";
 
-  return 0;
+  return (test_value > 0) ? (test_value == total) ? 0 : 1 : 0;
 
 }
