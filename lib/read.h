@@ -10,7 +10,12 @@
 #include <string>
 
 namespace aoc {
+
+std::vector<std::string> read_block(std::fstream &);
+
 std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string & filename);
+
+std::vector<std::string> line_to_columns(const std::string & line);
 
 template<class T, class F>
 requires std::invocable<F&, std::string &>
@@ -34,6 +39,13 @@ std::vector<T> read_vector_from_lines(const std::string & filename, F fn){
 
 return output;
 }
+
+template<class T, class F>
+requires std::invocable<F&, std::vector<std::string> &>
+T interpret_block(std::fstream & fs, F fn){
+	return fn(read_block(fs));
+}
+
 
 }
 
