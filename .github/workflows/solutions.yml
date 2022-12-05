@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   cmake_and_ctest:
-    name: CMake & CTest, ${{ matrix.variant.os }}
+    name: CMake & CTest ${{ matrix.cmake-type }} ${{ matrix.variant.os }}
     runs-on: ${{ matrix.variant.os }}
     defaults:
       run:
@@ -20,14 +20,18 @@ jobs:
       matrix:
         variant:
           - {os: ubuntu-latest}
-          - {os: macos-latest}
-          - {os: windows-latest}
         cmake-type: ['Release', 'Debug']
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Set up Clang
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: latest
+          platform: x64
 
       - name: CCache
         uses: hendrikmuhs/ccache-action@v1.2.2
