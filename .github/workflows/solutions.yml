@@ -19,31 +19,31 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-	  - {os: ubuntu-latest}
-	  - {os: macos-latest}
-	  - {os: windows-latest}
-	cmake-type: ['Release', 'Debug']
+          - {os: ubuntu-latest}
+          - {os: macos-latest}
+          - {os: windows-latest}
+  cmake-type: ['Release', 'Debug']
 
     steps:
       - uses: actions/checkout@v3
         with:
-	  fetch-depth: 0
+          fetch-depth: 0
 
       - name: CCache
         uses: hendrikmuhs/ccace-action@v1.2.2
-	with:
-	  key: ${{ matrix.variant.os }}
+        with:
+          key: ${{ matrix.variant.os }}
 
       - name: Configure
         run: cmake -S . -B build -D CMAKE_BUILD_TYPE=${{ matrix.cmake-type }}
       
       - name: Count cores
         uses: SimenB/github-actions-cpu-cores@v1
-	id: cpu-cores
+        id: cpu-cores
 
       - name: Build
         run: cmake --build build --config ${{ matrix.cmake-type }} --parallel ${{ steps.cpu-cores.outputs.count }}
 
       - name: Test
         working-directory: build
-	run: ctest -C ${{ matrix.cmake-type }} --output-on-failure --parallel ${{ steps.cpu-cores.outputs.count }}
+        run: ctest -C ${{ matrix.cmake-type }} --output-on-failure --parallel ${{ steps.cpu-cores.outputs.count }}
