@@ -19,6 +19,19 @@ std::vector<std::string> line_to_columns(const std::string & line);
 
 template<class T, class F>
 requires std::invocable<F&, std::string &>
+std::vector<T> read_vector_from_stream(std::fstream & fs, F fn){
+  std::vector<T> output;
+  std::string line;
+  while(getline(fs, line)){
+    if (!line.empty()){
+			output.push_back(fn(line));
+    }
+  }
+	return output;
+}
+
+template<class T, class F>
+requires std::invocable<F&, std::string &>
 std::vector<T> read_vector_from_lines(const std::string & filename, F fn){
   std::fstream fs;
   fs.open(filename, std::ios::in);
@@ -28,17 +41,9 @@ std::vector<T> read_vector_from_lines(const std::string & filename, F fn){
     msg += " does not exist!";
     throw std::runtime_error(msg);
   }
-  
-  std::vector<T> output;
-  std::string line;
-  while(getline(fs, line)){
-    if (!line.empty()){
-			output.push_back(fn(line));
-    }
-  }
-
-return output;
+	return read_vector_from_stream<T>(fs, fn);
 }
+
 
 template<class T, class F>
 requires std::invocable<F&, std::vector<std::string> &>
