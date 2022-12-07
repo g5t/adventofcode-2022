@@ -17,6 +17,8 @@ std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string & 
 
 std::vector<std::string> line_to_columns(const std::string & line);
 
+std::vector<std::string> read_lines(std::fstream &);
+
 template<class T, class F>
 requires std::invocable<F&, std::string &>
 std::vector<T> read_vector_from_stream(std::fstream & fs, F fn){

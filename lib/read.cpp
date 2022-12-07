@@ -17,6 +17,19 @@ std::vector<std::string> aoc::read_block(std::fstream & fs){
 	return output;
 }
 
+std::vector<std::string> aoc::read_lines(std::fstream & fs){
+	if (!fs.is_open()) {
+	  std::string msg = "The provided file input stream is not open";
+	  throw std::runtime_error(msg);
+	}
+	std::vector<std::string> output;
+	std::string line;
+	while (getline(fs, line)) {
+		output.push_back(line);
+	}
+	return output;
+}
+
 std::vector<std::vector<int>> aoc::read_vector_of_vector_of_ints(const std::string & filename) {
 
 std::fstream fs;

@@ -1,5 +1,6 @@
 set(SOURCES
     read.cpp
+		fakefilesystem.cpp
 )
 
 message(STATUS "Add library ${AOC22_LIBRARY}")
