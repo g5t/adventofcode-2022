@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.22.0)
+project(aoc22.11)
+
+set(SOURCES main.cpp)
+add_executable(aoc22.11 ${SOURCES})
+target_compile_options(aoc22.11 PRIVATE ${AOC22_CXX_FLAGS})
+target_link_libraries(aoc22.01 aoc)
+install(TARGETS aoc22.11 DESTINATION ${AOC22_INSTALL_BIN})
+add_test(NAME test.11.1 COMMAND aoc22.11 ${AOC22_INPUT_DIR}/test.11 1 10605)
+add_test(NAME test.11.2 COMMAND aoc22.11 ${AOC22_INPUT_DIR}/test.11 2 2713310158)
+add_test(NAME aoc22.11.1 COMMAND aoc22.11 ${AOC22_INPUT_DIR}/aoc22.11 1)
+add_test(NAME aoc22.11.2 COMMAND aoc22.11 ${AOC22_INPUT_DIR}/aoc22.11 2)

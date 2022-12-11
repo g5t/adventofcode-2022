@@ -50,11 +50,36 @@ std::vector<T> read_vector_from_lines(const std::string & filename, F fn){
 template<class T, class F>
 requires std::invocable<F&, std::vector<std::string> &>
 T interpret_block(std::fstream & fs, F fn){
-	return fn(read_block(fs));
+	std::vector<std::string> block;
+	std::string line;
+	while (getline(fs, line) && !line.empty()) {
+		block.push_back(line);
+	}
+	return fn(block);
 }
 
-
+template<class T, class F>
+std::vector<T> interpret_blocks(std::fstream& fs, F fn){
+  std::vector<T> output;
+	while (!fs.eof()) output.push_back(interpret_block<T>(fs, fn));
+	return output;
 }
+
+template<class T, class F>
+std::vector<T>
+read_blocks(const std::string & filename, F fn){
+	std::fstream fs;
+  fs.open(filename, std::ios::in);
+  if (!fs.is_open()) {
+    std::string msg = "The provided filename ";
+    msg += filename;
+    msg += " does not exist!";
+    throw std::runtime_error(msg);
+  }
+	return interpret_blocks<T>(fs, fn);
+}
+
+} // namespace aoc
 
 
 
