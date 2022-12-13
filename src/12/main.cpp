@@ -22,7 +22,7 @@ int main(int argc, const char *argv[]){
 
 
 	int answer=-3;
-	if (1 == part){
+	if (part == 1){
 		auto topo = aoc::topo::Map(lines);
 		auto a_path = topo.blaze();
 		answer = static_cast<int>(a_path.size()) - 1; // number of steps is one less than length

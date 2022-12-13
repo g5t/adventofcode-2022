@@ -23,11 +23,11 @@ public:
 	Tile(int a): altitude_(a) {}
 	Tile(char a){
 		if ('S' == a){
-			cost_ = 0;
+			cost_ = -1;
 			a = 'a';
 		}
 		if ('E' == a){
-			cost_ = -1;
+			cost_ = 0;
 			a = 'z';
 		}
 		altitude_ = a - 'a';
@@ -183,12 +183,13 @@ public:
 		// to start only one tile is known (the start)
 		// and one tile is the target (the end)
 		for (ind_t r=0; r<n_row; ++r) for (ind_t c=0; c<n_col; ++c) {
-			if (map_[r][c].known()) start_={r,c};
-			if (map_[r][c].is_target()) end_={r,c};
+			if (map_[r][c].known()) end_={r,c};
+			if (map_[r][c].is_target()) start_={r,c};
 	  }
 	}
 
 	coord_t start() const {return start_;}
+	coord_t end() const {return end_;}
 	void set_start(coord_t x) {
 		(*this)[start_].unset_cost();
 		(*this)[x].set_cost(0);
@@ -226,15 +227,13 @@ public:
 	}
 
 	std::vector<coord_t> path() const {
-		auto crumbs = path_.follow(end_, start_);
-		// reverse the crumbs;
-		std::reverse(crumbs.begin(), crumbs.end());
+		auto crumbs = path_.follow(start_, end_);
 		return crumbs;
 	}
 
-	std::vector<coord_t> blaze() {
-		// Djikstra's algorithm
-	  std::vector<coord_t> border{start_};
+	std::vector<coord_t> blaze(bool stop_at_zero = false) {
+		// Djikstra's algorithm from end_
+	  std::vector<coord_t> border{end_};
 		while (!border.empty()) {
 			// pick the lowest-cost border tile
 			std::partial_sort(border.begin(), border.begin()+1, border.end(), 
@@ -243,11 +242,14 @@ public:
 			// remove the cheapest cost from the border
 			border.erase(border.begin());
 
+			// Special shortcut for part-two:
+			if (stop_at_zero && (*this)[cc].altitude() == 0) continue;
+
 			// find its neighbors
 			auto next = neighbors(cc);
 
-			// filter those for which can be reached
-			next.erase(std::remove_if(next.begin(), next.end(), [&](const auto & nb){return !reachable(cc, nb);}), next.end());
+			// filter those for which can be reached (in reverse)
+			next.erase(std::remove_if(next.begin(), next.end(), [&](const auto & nb){return !reachable(nb, cc);}), next.end());
 
 			// and which have not been visited already
 			next.erase(std::remove_if(next.begin(), next.end(), [&](const auto & nb){return (*this)[nb].known();}), next.end());
@@ -272,98 +274,66 @@ public:
 		return path();
 	}
 
-	std::vector<coord_t> orientier(){
-		// A* algorithm
-		std::vector<coord_t> border{start_};
-		
-		std::vector<std::vector<std::optional<int>>> f_score;
-		f_score.resize(map_.size());
-		for (auto & r: f_score){
-			r.resize(map_[0].size());
-			for (auto & c: r) c = std::nullopt;
-		}
-		f_score[start_.first][start_.second] = 0;
-
-		while (!border.empty()){
-			// pick the lowest f_score border tile
-			std::partial_sort(border.begin(), border.begin()+1, border.end(),
-				[&](const auto & a, const auto & b){return f_score[a.first][a.second] < f_score[b.first][b.second];});
-			auto cc = border.front();
-
-			if (cc.first == end_.first && cc.second == end_.second){
-				// We made it to the end; follow the path back...
-				break;
-			}
-
-			// find its neighbors
-			auto next = neighbors(cc);
-			// filter those for which can be reached
-			next.erase(std::remove_if(next.begin(), next.end(), [&](const auto & nb){return reachable(cc, nb);}), next.end());
-
-
-			// remove the cheapest cost from the border
-			border.erase(border.begin());
-
-			for (auto & n: next){
-			  // calculate their tentative cost (this tile's cost +1)
-			  auto cost = (*this)[cc].get_cost() + 1;
-				// if the cost is less than their current value:
-				auto & nt = (*this)[n];
-				if (!nt.known() || nt.get_cost() > cost){
-			    // set their cost
-					nt.set_cost(cost);
-					// calculate their f_score -- the cost to get here + the 'manhattan' distance to the end
-					f_score[n.first][n.second] = cost + static_cast<int>(manhattan_distance(n, end_));
-					// and keep the pointer back to this tile
-					path_.set_towards(n, cc);
-					// add this neighbor to the border (if it isn't present)
-					if (std::find(border.begin(), border.end(), n) == border.end()){
-					  border.push_back(n);
-					}
-				}
-			}
-		}
-		return path();
-	}
-
-
 };
 
 class Hikes{
 public:
-	using hike_t = Map;
-	using map_t = hike_t::map_t;
-	using set_t = std::vector<hike_t>;
+	using map_t = Map;
+	using coord_t = map_t::coord_t;
+	using hike_t = std::vector<coord_t>;
+	using hikes_t = std::vector<hike_t>;
 
 private:
-	map_t base_map_;
-	set_t hikes_;
+  map_t map_;
+	hike_t starts_;
+	hikes_t hikes_;
 
 public:
-  Hikes(const std::vector<std::string> & m) {
-		hikes_.emplace_back(m);
-		base_map_ = hikes_.back().map_ref();
+  Hikes(const std::vector<std::string> & m): map_(m) {
+		starts_.push_back(map_.start());
+		auto start = starts_.front();
+		auto base = map_.map_ref();
 
-		auto start = hikes_.back().start();
-
-		for (size_t i=0; i<base_map_.size(); ++i){
-			for (size_t j=0; j<base_map_[0].size(); ++j){
-				if (!(start.first == i && start.second == j) && hikes_.back()[start] == hikes_.back()[std::make_pair(i,j)]){
-					hikes_.emplace_back(m);
-					hikes_.back().set_start(std::make_pair(i,j));
+		for (size_t i=0; i<base.size(); ++i){
+			for (size_t j=0; j<base[0].size(); ++j){
+				if (!(start.first == i && start.second == j) && map_[start] == map_[std::make_pair(i,j)]){
+					starts_.emplace_back(i,j);
 				}
 			}
 		}
+		//std::cout << *this;
 	}
 
-	std::vector<hike_t::coord_t> optimal() {
-		std::vector<std::vector<hike_t::coord_t>> paths;
-		paths.reserve(hikes_.size());
+	const map_t & map_ref() const {return map_;}
+	const hike_t & starts_ref() const {return starts_;}
+	const hikes_t & hikes_ref() const {return hikes_;}
 
-		std::transform(hikes_.begin(), hikes_.end(), std::back_inserter(paths), [](auto & x){return x.blaze();});
-		paths.erase(std::remove_if(paths.begin(), paths.end(), [](auto & x){return x.size() < 2;}), paths.end());
-		std::partial_sort(paths.begin(), paths.begin()+1, paths.end(), [](auto & a, auto &b){return a.size() < b.size();});
-		return paths.front();
+	friend std::ostream & operator<<(std::ostream & os, const Hikes & h){
+		os << h.map_ref();
+		for (auto & s: h.starts_ref()) os << "(" << s.first << "," << s.second << ") ";
+		os << "\n";
+		return os;
+	}
+
+	hike_t optimal() {
+		// fill in the map's PathField
+		map_.blaze(/*stop_at_zero=*/true);
+		auto end = map_.end();
+
+		auto pr = map_.path_ref();
+
+		//std::cout << pr;
+
+		// Remove possible starting points which do not connect to the end
+		starts_.erase(std::remove_if(starts_.begin(), starts_.end(), [&](auto & x){return !pr.connects(x, end);}), starts_.end());
+
+		// Find the remaining paths
+		hikes_.reserve(starts_.size());
+		std::transform(starts_.begin(), starts_.end(), std::back_inserter(hikes_), [&](auto & x){return pr.follow(x, end);});
+
+		// And pull-out the shortest one
+		std::partial_sort(hikes_.begin(), hikes_.begin()+1, hikes_.end(), [](auto & a, auto &b){return a.size() < b.size();});
+		return hikes_.front();
 	}
 			
 
