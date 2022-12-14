@@ -7,5 +7,6 @@
 
 #include "read.h"
 #include "fakefilesystem.h"
+#include "bitmap.h"
 
 #endif // ADVENT_OF_CODE_2022_LIBAOC_H

@@ -30,6 +30,18 @@ std::vector<std::string> aoc::read_lines(std::fstream & fs){
 	return output;
 }
 
+std::vector<std::string> aoc::read_lines(std::string & filename){
+	std::fstream fs;
+	fs.open(filename, std::ios::in);
+	if (!fs.is_open()) {
+	  std::string msg = "The provided filename ";
+	  msg += filename;
+	  msg += " does not exist!";
+	  throw std::runtime_error(msg);
+	}
+	return aoc::read_lines(fs);
+}
+
 std::vector<std::vector<int>> aoc::read_vector_of_vector_of_ints(const std::string & filename) {
 
 std::fstream fs;
