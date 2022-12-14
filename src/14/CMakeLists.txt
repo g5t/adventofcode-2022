@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.22.0)
+project(aoc22.14)
+
+set(SOURCES main.cpp hourglass.cpp)
+add_executable(aoc22.14 ${SOURCES})
+target_compile_options(aoc22.14 PRIVATE ${AOC22_CXX_FLAGS})
+target_link_libraries(aoc22.14 aoc)
+install(TARGETS aoc22.14 DESTINATION ${AOC22_INSTALL_BIN})
+add_test(NAME test.14.1 COMMAND aoc22.14 ${AOC22_INPUT_DIR}/test.14 1 24)
+add_test(NAME test.14.2 COMMAND aoc22.14 ${AOC22_INPUT_DIR}/test.14 2 93)
+add_test(NAME aoc22.14.1 COMMAND aoc22.14 ${AOC22_INPUT_DIR}/aoc22.14 1)
+add_test(NAME aoc22.14.2 COMMAND aoc22.14 ${AOC22_INPUT_DIR}/aoc22.14 2)
