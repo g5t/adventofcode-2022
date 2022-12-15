@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.22.0)
+project(aoc22.15)
+
+set(SOURCES main.cpp sensor.cpp)
+add_executable(aoc22.15 ${SOURCES})
+target_compile_options(aoc22.15 PRIVATE ${AOC22_CXX_FLAGS})
+target_link_libraries(aoc22.15 aoc)
+install(TARGETS aoc22.15 DESTINATION ${AOC22_INSTALL_BIN})
+add_test(NAME test.15.1 COMMAND aoc22.15 ${AOC22_INPUT_DIR}/test.15 1 26)
+add_test(NAME test.15.2 COMMAND aoc22.15 ${AOC22_INPUT_DIR}/test.15 2 56000011)
+add_test(NAME aoc22.15.1 COMMAND aoc22.15 ${AOC22_INPUT_DIR}/aoc22.15 1)
+add_test(NAME aoc22.15.2 COMMAND aoc22.15 ${AOC22_INPUT_DIR}/aoc22.15 2)
