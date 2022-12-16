@@ -11,7 +11,7 @@ int main(int argc, const char *argv[]){
     return 1;
   }
   using namespace aoc;
-	using namespace aoc::steam;
+  using namespace aoc::steam;
 
   std::string filename = argv[1];
   int part = std::stoi(argv[2]);
@@ -19,11 +19,13 @@ int main(int argc, const char *argv[]){
   int result = (argc > 3) ? std::stoi(argv[3]) : -1;
   int answer = -3;
 
-	auto piperunner = from_strings(read_lines(filename));
-	std::cout << piperunner << "\n";
+  auto piperunner = from_strings(read_lines(filename));
+  std::cout << piperunner << "\n";
 
   if (1 == part){
-		answer = piperunner.optimal_plan(30);
+    answer = piperunner.optimal_plan(30);
+  } else {
+    answer = piperunner.elephant_plan(26);
   }
 
   /* Parse input string or file to produce 'answer' */
