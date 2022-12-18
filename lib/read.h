@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <regex>
 
 namespace aoc {
 
@@ -16,6 +17,26 @@ std::vector<std::string> read_block(std::fstream &);
 std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string & filename);
 
 std::vector<std::string> line_to_columns(const std::string & line);
+
+template<class T>
+std::vector<T> split(const std::string & line){
+	std::regex column_regex("(\\w)+");
+
+	auto col_begin = std::sregex_iterator(line.begin(), line.end(), column_regex);
+	auto col_end = std::sregex_iterator();
+	auto col_count = std::distance(col_begin, col_end);
+
+	std::vector<std::string> out;
+	out.reserve(static_cast<size_t>(col_count));
+	for (auto i = col_begin; i != col_end; ++i){
+		std::smatch match = *i;
+		out.push_back(match.str());
+	}
+	std::vector<T> t;
+	t.reserve(out.size());
+	std::transform(out.begin(), out.end(), std::back_inserter(t), [](const auto & a){return static_cast<T>(std::stoll(a));});
+	return t;
+}
 
 std::vector<std::string> read_lines(std::fstream &);
 std::vector<std::string> read_lines(std::string &);
