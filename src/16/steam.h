@@ -214,10 +214,8 @@ public:
     std::vector<size_t> opened;
     std::vector<val_t> options;
     options.reserve(able.size() * (able.size()-1));
-    for (size_t i=0; i<able.size()-1; ++i){
-      for (size_t j=i+1; i<able.size(); ++j){
-        options.push_back(double_depth_first_search(able, opened, 0u, 0u, able[i], able[j], time, time, 0));
-      }
+    for (const auto & i: able) for (const auto & j: able) if (i != j){
+      options.push_back(double_depth_first_search(able, opened, 0u, 0u, i, j, time, time, 0));
     }
     return *std::max_element(options.begin(), options.end());
   }
@@ -251,39 +249,55 @@ private:
   }
 
   val_t double_depth_first_search(const std::vector<size_t> & able, std::vector<size_t> opened, size_t my_last, size_t el_last, size_t my_next, size_t el_next, val_t my_time, val_t el_time, val_t partial) const {
-    auto update_time_partial = [&](val_t & time, size_t last, size_t next){
+    auto not_enough_time = [&](val_t & time, size_t last, size_t next){
       auto to_open = 1 + dists_[last][next];
-      if (to_open >= time) return false;
+      // Signal to that it will take too long to open this valve
+      if (to_open >= time) return true;
       time -= to_open;
       partial += time * list_[next].valve()->would_flow();
-      return true;
+      // Signal that it doesn't take too long, and we've made it to the valve
+      return false;
     };
-    auto add_opened = [&](size_t next){
-      opened.push_back(next);
-      return able.size() == opened.size();
+    auto unopened_valves = [&](size_t skip){
+      std::vector<size_t> remaining;
+      remaining.reserve(able.size() - opened.size());
+      for (const auto & a: able) if (a!=skip && std::find(opened.begin(), opened.end(), a) == opened.end()) {
+        remaining.push_back(a);
+      }
+      return remaining;
+    };
+    auto record_opening = [&](size_t & last, size_t next){
+      if (std::find(able.begin(), able.end(), next) != able.end()) opened.push_back(next);
+      last = next;
     };
     // the entity with the most time takes the next step ... maybe this makes sense
-    if (0 >= my_time && 0 >= el_time) [[unlikely]] return partial;
+    if (0 == my_time && 0 == el_time) [[unlikely]] return partial;
     if (my_time > el_time){
-      if (!update_time_partial(my_time, my_last, my_next)) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, 0, el_time, partial);
-      if (add_opened(my_next)) return partial;
+      // protect against trying to open an already-opened valve:
+      if (std::find(opened.begin(), opened.end(), my_next) != opened.end()) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, 0, el_time, partial);
+      // check if we *can* open the valve, and update our remaining time if we can
+      if (not_enough_time(my_time, my_last, my_next)) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, 0, el_time, partial);
+      record_opening(my_last, my_next);
+      // make sure we don't try to open the valve that the elephant is going for:
+      auto left = unopened_valves(el_next);
+      // move the elephant (or stop if it is already out of time);
+      if (left.empty()) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, 0, el_time, partial);
+      // from the remaining valves, pick all of them one at a time for *our* next valve
+      std::vector<val_t> options;
+      options.reserve(left.size());
+      for (const auto & next: left) options.push_back(double_depth_first_search(able, opened, my_last, el_last, next, el_next, my_time, el_time, partial));
+      return *std::max_element(options.begin(), options.end());
     } else {
-      if (!update_time_partial(el_time, el_last, el_next)) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, my_time, 0, partial);
-      if (add_opened(el_next)) return partial;
+      if (std::find(opened.begin(), opened.end(), el_next) != opened.end()) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, my_time, 0, partial);
+      if (not_enough_time(el_time, el_last, el_next)) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, my_time, 0, partial);
+      record_opening(el_last, el_next);
+      auto left = unopened_valves(my_next);
+      if (left.empty()) return double_depth_first_search(able, opened, my_last, el_last, my_next, el_next, my_time, 0, partial);
+      std::vector<val_t> options;
+      options.reserve(left.size());
+      for (const auto & next: left) options.push_back(double_depth_first_search(able, opened, my_last, el_last, my_next, next, my_time, el_time, partial));
+      return *std::max_element(options.begin(), options.end());
     }
-    // and check the remaining unopened valves
-    std::vector<size_t> left;
-    left.reserve(able.size() - opened.size());
-    for (const auto & v: able) if (std::find(opened.begin(), opened.end(), v) == opened.end()) left.push_back(v);
-
-    std::vector<val_t> options;
-    options.reserve(left.size() * (left.size() - 1));
-    for (size_t i=0; i<left.size()-1; ++i){
-      for (size_t j=i+1; i<left.size(); ++j){
-      options.push_back(double_depth_first_search(able, opened, my_last, el_last, left[i], left[j], my_time, el_time, partial));
-      }
-    }
-    return *std::max_element(options.begin(), options.end());
   }
 
   val_t find_distance(size_t from, size_t to) const {
