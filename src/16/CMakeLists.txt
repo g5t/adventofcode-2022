@@ -11,4 +11,4 @@ add_test(NAME test.16.2 COMMAND aoc22.16 ${AOC22_INPUT_DIR}/test.16 2 1707)
 add_test(NAME aoc22.16.1 COMMAND aoc22.16 ${AOC22_INPUT_DIR}/aoc22.16 1)
 
 # The runtime for this is ~50 minutes -- There's no reason to repeat it.
-#add_test(NAME aoc22.16.2 COMMAND aoc22.16 ${AOC22_INPUT_DIR}/aoc22.16 2 2504)
+add_test(NAME aoc22.16.2 COMMAND aoc22.16 ${AOC22_INPUT_DIR}/aoc22.16 2 2504)

@@ -23,9 +23,9 @@ int main(int argc, const char *argv[]){
   std::cout << piperunner << "\n";
 
   if (1 == part){
-    answer = piperunner.optimal_plan(30);
+    answer = piperunner.all_optimal_plan(30);
   } else {
-    answer = piperunner.elephant_plan(26);
+    answer = piperunner.all_elephant_plan(26);
   }
 
   /* Parse input string or file to produce 'answer' */

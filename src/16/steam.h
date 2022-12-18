@@ -209,6 +209,41 @@ public:
     return best;
   }
 
+  std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> all_common_plan(val_t time) const {
+	  auto able = which_can_open();
+		std::vector<size_t> open;
+		std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> solutions;
+		for (const auto & valve: able) {
+		  for (const auto & solution: all_valid_solutions(able, std::vector<size_t>(), 0u, valve, time, 0))
+				solutions.push_back(solution);
+		}
+		std::cout << solutions.size() << " possible solutions\n";
+		return solutions;
+	}
+
+	val_t all_optimal_plan(val_t time) const {
+	  auto solutions = all_common_plan(time);
+		std::vector<val_t> values;
+		std::transform(solutions.begin(), solutions.end(), std::back_inserter(values), [](const auto & solution){return solution->second;});
+		return *std::max_element(values.begin(), values.end());
+	}
+
+	val_t all_elephant_plan(val_t time) const {
+	  auto solutions = all_common_plan(time);
+		size_t no =solutions.size();
+		size_t count{0}, total{(no-1)*(no-2)>>1};
+		size_t every{total/10};
+		val_t best{0};
+		for (size_t a=0; a<no-1; ++a) for (size_t b=a+1; b<no; ++b){
+	    if (++count % every == 0) std::cout << "Checked: " << std::setw(3) << 100*count/total << "% = "<< count << "/" << total << " running best = " << best << "\n";
+		  const auto & me = solutions[a]->first;
+		  const auto & el = solutions[b]->first;
+		  if (!std::any_of(me.begin(), me.end(), [&el](const auto & x){return std::find(el.begin(), el.end(), x) != el.end();}))
+		    best = std::max(best, solutions[a]->second + solutions[b]->second);
+		}
+		return best;
+	}
+
   val_t elephant_plan(val_t time) const {
     auto able = which_can_open();
     std::vector<size_t> opened;
@@ -247,6 +282,32 @@ private:
     // pick the biggest option to push back up the call stack
     return *std::max_element(options.begin(), options.end());
   }
+
+	std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> all_valid_solutions(const std::vector<size_t> & able, std::vector<size_t> opened, size_t last, size_t next, val_t time, val_t partial) const {
+	  // Return a list of all possible valid solutions
+		//		output format: ->first = ordered list of visited caves; ->second = total released pressure value
+		
+		std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> solutions;
+
+		auto opening_time = 1 + dists_[last][next];
+		if (opening_time >= time) return solutions;
+
+		time -= opening_time;
+		partial += time * list_[next].valve()->would_flow();
+		opened.push_back(next);
+
+		// store *all* partial solutions, since they're valid half solutions for part-2
+		solutions.push_back(std::make_shared<std::pair<std::vector<size_t>, val_t>>(opened, partial));
+
+		if (opened.size() < able.size()) {
+			for (const auto & valve: able) if (std::find(opened.begin(), opened.end(), valve) == opened.end())
+			for (const auto & option: all_valid_solutions(able, opened, next, valve, time, partial)) {
+			  // store the recursively found solutions
+				solutions.push_back(option);
+			}
+		}
+		return solutions;
+	}
 
   val_t double_depth_first_search(const std::vector<size_t> & able, std::vector<size_t> opened, size_t my_last, size_t el_last, size_t my_next, size_t el_next, val_t my_time, val_t el_time, val_t partial) const {
     auto not_enough_time = [&](val_t & time, size_t last, size_t next){
