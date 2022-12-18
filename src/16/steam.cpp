@@ -59,6 +59,6 @@ PipeRunner aoc::steam::from_strings(const std::vector<std::string> & lines){
      pr.push_back(cave);
   }
 
-  return {std::move(pr)};
+  return PipeRunner(std::move(pr));
 }
 
