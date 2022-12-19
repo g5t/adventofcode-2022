@@ -120,67 +120,62 @@ public:
     return os;
   }
 
-	[[nodiscard]] val_t all_optimal_plan(val_t time) const {
-	  auto solutions = all_common_plan(time);
-		std::vector<val_t> values;
-		std::transform(solutions.begin(), solutions.end(), std::back_inserter(values), [](const auto & solution){return solution->second;});
-		return *std::max_element(values.begin(), values.end());
-	}
+  [[nodiscard]] val_t optimal_plan(val_t time) const {
+    auto solutions = common_plan(time);
+    std::vector<val_t> values;
+    std::transform(solutions.begin(), solutions.end(), std::back_inserter(values), [](const auto & solution){return solution->second;});
+    return *std::max_element(values.begin(), values.end());
+  }
 
-	[[nodiscard]] val_t all_elephant_plan(val_t time) const {
-	  auto solutions = all_common_plan(time);
-		size_t no =solutions.size();
-		size_t count{0}, total{(no-1)*(no-2)>>1};
-		size_t every{total/10};
-		val_t best{0};
-		for (size_t a=0; a<no-1; ++a) for (size_t b=a+1; b<no; ++b){
-	    if (++count % every == 0) std::cout << "Checked: " << std::setw(3) << 100*count/total << "% = "<< count << "/" << total << " running best = " << best << "\n";
-		  const auto & me = solutions[a]->first;
-		  const auto & el = solutions[b]->first;
-		  if (!std::any_of(me.begin(), me.end(), [&el](const auto & x){return std::find(el.begin(), el.end(), x) != el.end();}))
-		    best = std::max(best, solutions[a]->second + solutions[b]->second);
-		}
-		return best;
-	}
+  [[nodiscard]] val_t elephant_plan(val_t time) const {
+    auto solutions = common_plan(time);
+    size_t no =solutions.size();
+    val_t best{0};
+    for (size_t a=0; a<no-1; ++a) {
+      const auto & me = solutions[a];
+      for (size_t b = a + 1; b < no; ++b) {
+        const auto & el = solutions[b];
+        if ((me->first & el->first)==0 && me->second + el->second > best) best = me->second + el->second;
+      }
+    }
+    return best;
+  }
 
-private:
-  [[nodiscard]] std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> all_common_plan(val_t time) const {
-    auto able = which_can_open();
-    std::vector<size_t> open;
-    std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> solutions;
-    for (const auto & valve: able) {
-      for (const auto & solution: all_valid_solutions(able, std::vector<size_t>(), 0u, valve, time, 0))
-        solutions.push_back(solution);
+  [[nodiscard]] std::vector<std::shared_ptr<std::pair<uint64_t, val_t>>> common_plan(val_t time) const {
+    auto able = encode_which_can_open();
+    std::vector<std::shared_ptr<std::pair<uint64_t, val_t>>> solutions;
+    for (size_t valve=1; valve<list_.size(); ++valve){
+      if (able & (1lu<<valve)){
+        for (const auto & sol: all_solutions(able, 0u, 0u, valve, time, 0)){
+          solutions.push_back(sol);
+        }
+      }
     }
     std::cout << solutions.size() << " possible solutions\n";
     return solutions;
   }
+private:
 
-	[[nodiscard]] std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> all_valid_solutions(const std::vector<size_t> & able, std::vector<size_t> opened, size_t last, size_t next, val_t time, val_t partial) const {
-	  // Return a list of all possible valid solutions
-		//		output format: ->first = ordered list of visited caves; ->second = total released pressure value
-		
-		std::vector<std::shared_ptr<std::pair<std::vector<size_t>, val_t>>> solutions;
-
-		auto opening_time = 1 + dists_[last][next];
-		if (opening_time >= time) return solutions;
-
-		time -= opening_time;
-		partial += time * list_[next].valve()->would_flow();
-		opened.push_back(next);
-
-		// store *all* partial solutions, since they're valid half solutions for part-2
-		solutions.push_back(std::make_shared<std::pair<std::vector<size_t>, val_t>>(opened, partial));
-
-		if (opened.size() < able.size()) {
-			for (const auto & valve: able) if (std::find(opened.begin(), opened.end(), valve) == opened.end())
-			for (const auto & option: all_valid_solutions(able, opened, next, valve, time, partial)) {
-			  // store the recursively found solutions
-				solutions.push_back(option);
-			}
-		}
-		return solutions;
-	}
+  [[nodiscard]] std::vector<std::shared_ptr<std::pair<uint64_t, val_t>>> all_solutions(const uint64_t able, uint64_t open, size_t last, size_t next, val_t time, val_t partial) const {
+    std::vector<std::shared_ptr<std::pair<uint64_t, val_t>>> solutions;
+    auto opening_time = 1 + dists_[last][next];
+    if (opening_time >= time) return solutions;
+    time -= opening_time;
+    partial += time * list_[next].valve()->would_flow();
+		// keep track of open valves
+    open |= (1lu << next);
+		// store partial solutions for fun (and part two)
+    solutions.push_back(std::make_shared<std::pair<uint64_t, val_t>>(open, partial));
+    if (open != able) {
+      for (size_t valve=1; valve<list_.size(); ++valve){
+        auto key = 1lu << valve;
+        if ((able & key) && !(open & key))
+          for (const auto & opt: all_solutions(able, open, next, valve, time, partial))
+            solutions.push_back(opt);
+      }
+    }
+    return solutions;
+  }
 
   [[nodiscard]] val_t find_distance(size_t from, size_t to) const {
     // perform a breadth-first search to find the shortest distance
@@ -217,13 +212,11 @@ private:
     return *std::min_element(possible_distances.begin(), possible_distances.end());
   }
 
-  [[nodiscard]] std::vector<size_t> which_can_open() const {
-    std::vector<size_t> can;
-    can.reserve(list_.size());
-    for (size_t i=0; i<list_.size(); ++i) if(list_[i].valve()->can_open()) can.push_back(i);
+  [[nodiscard]] uint64_t encode_which_can_open() const {
+    uint64_t can{0u};
+    for (uint64_t i=1; i<list_.size(); ++i) if(list_[i].valve()->can_open()) can |= (1lu << i);
     return can;
   }
-
 };
 
 PipeRunner from_strings(const std::vector<std::string> & lines);

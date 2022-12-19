@@ -39,14 +39,8 @@ PipeRunner aoc::steam::from_strings(const std::vector<std::string> & lines){
     caves.emplace(name, cave);
     outlets.emplace(name, out);
   }
-  std::cout << "input order ";
-  for (const auto & o: order) std::cout << o << " ";
-  std::cout << "\n";
+  // Sort the caves to ensure we start in cave AA
   std::sort(order.begin(), order.end());
-
-  std::cout << "sorted order ";
-  for (const auto & o: order) std::cout << o << " ";
-  std::cout << std::endl;
 
   std::vector<Cave> pr;
   pr.reserve(lines.size());

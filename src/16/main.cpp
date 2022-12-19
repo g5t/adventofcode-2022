@@ -20,12 +20,11 @@ int main(int argc, const char *argv[]){
   int answer = -3;
 
   auto piperunner = from_strings(read_lines(filename));
-  std::cout << piperunner << "\n";
 
   if (1 == part){
-    answer = piperunner.all_optimal_plan(30);
+    answer = piperunner.optimal_plan(30);
   } else {
-    answer = piperunner.all_elephant_plan(26);
+    answer = piperunner.elephant_plan(26);
   }
 
   /* Parse input string or file to produce 'answer' */
