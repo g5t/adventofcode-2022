@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.22.0)
+project(aoc22.21)
+
+set(SOURCES main.cpp monkey_math.cpp)
+add_executable(aoc22.21 ${SOURCES})
+target_compile_options(aoc22.21 PRIVATE ${AOC22_CXX_FLAGS})
+target_link_libraries(aoc22.21 aoc)
+install(TARGETS aoc22.21 DESTINATION ${AOC22_INSTALL_BIN})
+add_test(NAME test.21.1 COMMAND aoc22.21 ${AOC22_INPUT_DIR}/test.21 1 152)
+add_test(NAME test.21.2 COMMAND aoc22.21 ${AOC22_INPUT_DIR}/test.21 2 301)
+add_test(NAME aoc22.21.1 COMMAND aoc22.21 ${AOC22_INPUT_DIR}/aoc22.21 1)
+add_test(NAME aoc22.21.2 COMMAND aoc22.21 ${AOC22_INPUT_DIR}/aoc22.21 2)
