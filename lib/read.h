@@ -13,6 +13,7 @@
 namespace aoc {
 
 std::vector<std::string> read_block(std::fstream &);
+std::vector<std::vector<std::string>> read_blocks(const std::string &);
 
 std::vector<std::vector<int>> read_vector_of_vector_of_ints(const std::string & filename);
 

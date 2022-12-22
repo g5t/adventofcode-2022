@@ -17,6 +17,21 @@ std::vector<std::string> aoc::read_block(std::fstream & fs){
 	return output;
 }
 
+std::vector<std::vector<std::string>> aoc::read_blocks(const std::string & filename){
+  std::fstream fs;
+	fs.open(filename, std::ios::in);
+  if (!fs.is_open()) {
+    std::string msg = "The provided filename ";
+    msg += filename;
+    msg += " does not exist!";
+		std::cerr << msg << "\n";
+    throw std::runtime_error(msg);
+  }
+	std::vector<std::vector<std::string>> output;
+	while (!fs.eof()) output.push_back(read_block(fs));
+	return output;
+}
+
 std::vector<std::string> aoc::read_lines(std::fstream & fs){
 	if (!fs.is_open()) {
 	  std::string msg = "The provided file input stream is not open";
