@@ -9,5 +9,7 @@
 #include "fakefilesystem.h"
 #include "bitmap.h"
 #include "ranges.h"
+#include "roll.h"
+#include "coord.h"
 
 #endif // ADVENT_OF_CODE_2022_LIBAOC_H

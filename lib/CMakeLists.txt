@@ -2,6 +2,7 @@ set(SOURCES
     read.cpp
 	fakefilesystem.cpp
 	bitmap.cpp
+	coord.cpp
 	)
 
 message(STATUS "Add library ${AOC22_LIBRARY}")
